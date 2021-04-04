@@ -1,9 +1,11 @@
+import datetime
 import math
 import os
 import random
 import time
 
 import naoqi
+import qi
 
 print os.environ['PYTHONPATH']
 print os.environ['QI_SDK_PREFIX']
@@ -30,6 +32,9 @@ assert abs(rad2deg(deg2rad(-12)) - (-12)) < 1e-6
 
 def initialize_robot():
     """Wake up (stiff joints) and disable autonomous life (autonomous human-like motions)"""
+
+    proxy_motion = naoqi.ALProxy("ALMotion", IP, PORT)
+    proxy_motion.wakeUp()
 
     proxy_autonomous_life = naoqi.ALProxy("ALAutonomousLife", IP, PORT)
     proxy_autonomous_life.setState("disabled")
@@ -68,20 +73,45 @@ def joint_angles():
         time.sleep(0.01)
 
 
-def stimulus():
-    # TODO(TK): Responding to stimulus
+def events_and_callbacks():
+    """Example of getting callbacks for events"""
 
-    proxy_basic_awareness = naoqi.ALProxy("ALBasicAwareness", IP, PORT)
-    proxy_basic_awareness.triggerStimulus([0, 0, 0, 0, 0, 0])
+    # ALMemory acts as the hub for the distribution of event notifications.
+    # Source: https://developer.softbankrobotics.com/nao6/naoqi-developer-guide/naoqi-apis/naoqi-core/almemory
+    # Example: https://developer.softbankrobotics.com/nao6/naoqi-developer-guide/other-tutorials/python-sdk-tutorials/python-sdk-examples/vision/face
+
+    class MyModule(naoqi.ALModule):
+        """Mandatory docstring"""
+
+        def myCallback(self, key, value, message):
+            """Mandatory docstring"""
+
+            print("Callback: key={}, value={}, message={}".format(key, value, message))
+
+    # Create a broker
+    # TODO(TK): why?
+    naoqi.ALBroker("pythonBroker", IP, 9999, IP, PORT)
+
+    # Create an instance of our callback handling module, and add it to global scope:
+    global myModule  # needs to be in global scope
+    myModule = MyModule("myModule")
+
+    # Subscribe to events and raise an event:
+    proxy_memory = naoqi.ALProxy("ALMemory", IP, PORT)
+    print "FaceDetected events before={}".format(proxy_memory.getEventHistory("FaceDetected"))
+    proxy_memory.subscribeToEvent("FaceDetected", "myModule", "myCallback")
+    proxy_memory.raiseEvent("FaceDetected", str(datetime.datetime.now()))
+    print "FaceDetected events after={}".format(proxy_memory.getEventHistory("FaceDetected"))
+    time.sleep(0.1)  # give it some time to process
 
 
 def main():
-    initialize_robot()
+    # initialize_robot()
 
     # speech()
     # posture()
     # joint_angles()
-    # stimulus()
+    events_and_callbacks()
 
 
 if __name__ == "__main__":
