@@ -28,6 +28,16 @@ assert abs(rad2deg(deg2rad(12)) - 12) < 1e-6
 assert abs(rad2deg(deg2rad(-12)) - (-12)) < 1e-6
 
 
+def initialize_robot():
+    """Wake up (stiff joints) and disable autonomous life (autonomous human-like motions)"""
+
+    proxy_autonomous_life = naoqi.ALProxy("ALAutonomousLife", IP, PORT)
+    proxy_autonomous_life.setState("disabled")
+
+    proxy_motion = naoqi.ALProxy("ALMotion", IP, PORT)
+    proxy_motion.wakeUp()
+
+
 def speech():
     """Say something"""
 
@@ -49,7 +59,6 @@ def joint_angles():
     """Read/write joint angles"""
 
     proxy_motion = naoqi.ALProxy("ALMotion", IP, PORT)
-    # print motion.getAngles("Body", False)
     target_head_pitch_deg = random.randrange(-10, 10)
     print "Target head pitch = {}".format(target_head_pitch_deg)
     print "HeadPitch(actual)={}".format([rad2deg(rad) for rad in proxy_motion.getAngles("HeadPitch", True)])
@@ -58,13 +67,21 @@ def joint_angles():
         print "HeadPitch(actual)={}".format([rad2deg(rad) for rad in proxy_motion.getAngles("HeadPitch", True)])
         time.sleep(0.01)
 
-# TODO(TK): Responding to events
+
+def stimulus():
+    # TODO(TK): Responding to stimulus
+
+    proxy_basic_awareness = naoqi.ALProxy("ALBasicAwareness", IP, PORT)
+    proxy_basic_awareness.triggerStimulus([0, 0, 0, 0, 0, 0])
 
 
 def main():
+    initialize_robot()
+
     # speech()
     # posture()
-    joint_angles()
+    # joint_angles()
+    # stimulus()
 
 
 if __name__ == "__main__":
