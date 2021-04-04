@@ -1,4 +1,5 @@
 import datetime
+import functools
 import math
 import os
 import random
@@ -73,7 +74,7 @@ def joint_angles():
         time.sleep(0.01)
 
 
-def events_and_callbacks():
+def events_and_callbacks_naoqi():
     """Example of getting callbacks for events"""
 
     # ALMemory acts as the hub for the distribution of event notifications.
@@ -96,12 +97,50 @@ def events_and_callbacks():
     global myModule  # needs to be in global scope
     myModule = MyModule("myModule")
 
-    # Subscribe to events and raise an event:
+    # [naoqi] Subscribe to events:
     proxy_memory = naoqi.ALProxy("ALMemory", IP, PORT)
     print "FaceDetected events before={}".format(proxy_memory.getEventHistory("FaceDetected"))
     proxy_memory.subscribeToEvent("FaceDetected", "myModule", "myCallback")
+
+    # qi framework
+    def mycallback(key, value):
+        print("qi callback: key={}, value={}".format(key, value))
+    sess = proxy_memory.session()
+    mem = sess.service("ALMemory")
+    sub = mem.subscriber("FaceDetected")
+    sub.signal.connect(functools.partial(mycallback, "FaceDetected"))
+
+    # Raise an event:
     proxy_memory.raiseEvent("FaceDetected", str(datetime.datetime.now()))
+    proxy_memory.raiseEvent("AnotherEvent", str(datetime.datetime.now()))
     print "FaceDetected events after={}".format(proxy_memory.getEventHistory("FaceDetected"))
+    time.sleep(0.1)  # give it some time to process
+
+
+def events_and_callbacks_qi_framework():
+    """Example of getting callbacks for events"""
+
+    # ALMemory acts as the hub for the distribution of event notifications.
+    # Source: https://developer.softbankrobotics.com/nao6/naoqi-developer-guide/naoqi-apis/naoqi-core/almemory
+    # Example: https://developer.softbankrobotics.com/nao6/naoqi-developer-guide/other-tutorials/python-sdk-tutorials/python-sdk-examples/vision/face
+
+    # Create a broker
+    # TODO(TK): why?
+    naoqi.ALBroker("pythonBroker", IP, 9999, IP, PORT)
+
+    proxy_memory = naoqi.ALProxy("ALMemory", IP, PORT)
+
+    # Register callback:
+    def mycallback(key, value):
+        print("qi callback: key={}, value={}".format(key, value))
+    sess = proxy_memory.session()
+    mem = sess.service("ALMemory")
+    sub = mem.subscriber("FaceDetected")
+    sub.signal.connect(functools.partial(mycallback, "FaceDetected"))
+
+    # Raise an event:
+    proxy_memory.raiseEvent("FaceDetected", str(datetime.datetime.now()))
+    proxy_memory.raiseEvent("AnotherEvent", str(datetime.datetime.now()))
     time.sleep(0.1)  # give it some time to process
 
 
@@ -111,7 +150,9 @@ def main():
     # speech()
     # posture()
     # joint_angles()
-    events_and_callbacks()
+
+    # events_and_callbacks_naoqi()
+    events_and_callbacks_qi_framework()
 
 
 if __name__ == "__main__":
