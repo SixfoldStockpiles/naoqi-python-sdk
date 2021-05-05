@@ -8,9 +8,10 @@ import time
 
 import naoqi
 import qi
+import matplotlib.pyplot as plt
+import numpy as np
 
-from helpers import retry_wrapper, parse_face_expressions
-
+from helpers import retry_wrapper, parse_face_expressions, CameraResolution, ColorSpace, parse_image
 
 print os.environ['PYTHONPATH']
 print os.environ['QI_SDK_PREFIX']
@@ -277,8 +278,23 @@ def record_limb_trajectory():
 
 
 def get_video():
-    pass
+    retry_proxy = retry_wrapper(naoqi.ALProxy)
 
+    proxy_video_device = retry_proxy("ALVideoDevice", IP_ROBOT, PORT_ROBOT)
+
+    camera_handle = proxy_video_device.subscribeCamera("CustomModule", 1, CameraResolution.k16VGA, ColorSpace.kYUV422ColorSpace, 15)
+    try:
+        print "handle={}".format(camera_handle)
+
+        while True:
+            img = proxy_video_device.getDirectRawImageRemote(camera_handle)
+            img_parsed = parse_image(img)
+
+            plt.imshow(img_parsed, cmap=plt.cm.gray)
+            plt.pause(0.1)
+
+    finally:
+        proxy_video_device.unsubscribe(camera_handle)
 
 
 def main():
@@ -290,8 +306,8 @@ def main():
 
     # people_perception()
     # face_characteristics()
-    record_limb_trajectory()
-    # get_video()
+    # record_limb_trajectory()
+    get_video()
 
     # events_and_callbacks_naoqi()
     # events_and_callbacks_qi_framework()
