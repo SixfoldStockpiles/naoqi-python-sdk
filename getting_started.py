@@ -16,10 +16,14 @@ from helpers import retry_wrapper, parse_face_expressions, CameraResolution, Col
 print os.environ['PYTHONPATH']
 print os.environ['QI_SDK_PREFIX']
 
-# IP = "127.0.0.1"
-IP_ROBOT = "192.168.0.100"
+#IP_ROBOT = "192.168.0.100"
+#PORT_ROBOT = 9559
+#IP_ME = "192.168.0.102"
+#PORT_ME = 1234
+
+IP_ROBOT = "127.0.0.1"
 PORT_ROBOT = 9559
-IP_ME = "192.168.0.102"
+IP_ME = "127.0.0.1"
 PORT_ME = 1234
 
 # Note that naoqi.ALProxy wraps C++ code of the module provided as an argument, and seamlessly converts method calls
@@ -101,7 +105,7 @@ def events_and_callbacks_naoqi():
 
     # Create a broker
     # TODO(TK): why?
-    naoqi.ALBroker("pythonBroker", "127.0.0.1", 1234, IP_ROBOT, PORT_ROBOT)
+    naoqi.ALBroker("pythonBroker", IP_ME, PORT_ME, IP_ROBOT, PORT_ROBOT)
 
     # Create an instance of our callback handling module, and add it to global scope:
     global myModule  # needs to be in global scope
@@ -136,7 +140,7 @@ def events_and_callbacks_qi_framework():
 
     # Create a broker
     # TODO(TK): why?
-    naoqi.ALBroker("pythonBroker", "127.0.0.1", 1234, IP_ROBOT, PORT_ROBOT)
+    naoqi.ALBroker("pythonBroker", IP_ME, PORT_ME, IP_ROBOT, PORT_ROBOT)
 
     proxy_memory = naoqi.ALProxy("ALMemory", IP_ROBOT, PORT_ROBOT)
 
@@ -169,7 +173,7 @@ def people_perception():
     print "isFaceDetectionEnabled={}".format(proxy_people_perception.isFaceDetectionEnabled())
     print "isFastModeEnabled={}".format(proxy_people_perception.isFastModeEnabled())
 
-    retry_broker("pythonBroker", "127.0.0.1", 1234, IP_ROBOT, PORT_ROBOT)
+    retry_broker("pythonBroker", IP_ME, PORT_ME, IP_ROBOT, PORT_ROBOT)
     proxy_memory = naoqi.ALProxy("ALMemory", IP_ROBOT, PORT_ROBOT)
     sess = proxy_memory.session()
     mem = sess.service("ALMemory")
@@ -215,7 +219,7 @@ def face_characteristics():
     print "isFastModeEnabled={}".format(proxy_people_perception.isFastModeEnabled())
     print "isFaceAnalysisEnabled={}".format(proxy_gaze_analysis.isFaceAnalysisEnabled())
 
-    retry_broker("pythonBroker", "127.0.0.1", 1234, IP_ROBOT, PORT_ROBOT)
+    retry_broker("pythonBroker", IP_ME, PORT_ME, IP_ROBOT, PORT_ROBOT)
     proxy_memory = naoqi.ALProxy("ALMemory", IP_ROBOT, PORT_ROBOT)
 
     while True:
@@ -302,12 +306,12 @@ def main():
 
     # speech()
     # posture()
-    # joint_angles()
+    joint_angles()
 
     # people_perception()
     # face_characteristics()
     # record_limb_trajectory()
-    get_video()
+    # get_video()
 
     # events_and_callbacks_naoqi()
     # events_and_callbacks_qi_framework()
