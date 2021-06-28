@@ -85,5 +85,7 @@ if __name__ == '__main__':
         proxy_motion.setAngles("LElbowYaw", deg2rad(-(l_forearm_z_rot + l_arm_y_rot) - 90), 1.0)
         proxy_motion.setAngles("LElbowRoll", deg2rad(l_forearm_y_rot), 1.0)
 
+        # TODO(TK): this should really reference an absolute, not relative, objective timestamp to avoid accumulating
+        #  error
         t_sleep = rotations.framerate - (time.time() - time_begin)
         time.sleep(t_sleep)
